@@ -24,6 +24,7 @@ class Main_Window(QtWidgets.QMainWindow):
         self.flag_camera = False
         self.flag_video = False
         self.flag_image = False
+
         # Default mode is object detection
         self.flag_mode_det = True
 
@@ -80,6 +81,10 @@ class Main_Window(QtWidgets.QMainWindow):
 
         mainLayout.addLayout(self.topLayout)
 
+        # Control Section (Bottom part)
+        self.setup_control_panel(mainLayout)
+
+    def setup_control_panel(self, mainLayout):
         # Control section (bottom part)
         groupBox_left = QtWidgets.QGroupBox(self)
         groupBox_right = QtWidgets.QGroupBox(self)
@@ -88,57 +93,60 @@ class Main_Window(QtWidgets.QMainWindow):
         self.bottomLayout = QtWidgets.QVBoxLayout(groupBox_right)
 
         # Create control panel
-        # Model size selection (currently only supports "n" and "s" sizes)
-
+        # Model size selection
         self.white_add1 = QtWidgets.QLabel(self)
         self.white_add2 = QtWidgets.QLabel(self)
+        self.white_add3 = QtWidgets.QLabel(self)
 
-        self.model_label = QtWidgets.QLabel(self)
-        self.model_label.setText("Model Size:")
-        self.model_label.setStyleSheet("border:0px")
-        self.model_label.setStyleSheet("font-size:20px")
-        self.bottomLayout_control.addWidget(self.model_label)
-
-        self.model_comba = QtWidgets.QComboBox(self)
-        self.model_comba.addItems(["yolov10n.pt", "yolov10s.pt"])
-        self.model_comba.setStyleSheet("font-size:15px")
+        self.model_label = self.create_label("Select Model:", 20)
+        self.model_comba = self.create_combobox(["yolov10n.pt", "yolov10s.pt"], 15)
         self.model_comba.currentIndexChanged.connect(self.on_model_changed)
+        self.bottomLayout_control.addWidget(self.model_label)
         self.bottomLayout_control.addWidget(self.model_comba)
 
         self.bottomLayout_control.addWidget(self.white_add1)
 
-        # Mode selection (currently supports object detection and instance segmentation)
-        self.mode_label = QtWidgets.QLabel(self)
-        self.mode_label.setText("Select Mode:")
-        self.mode_label.setStyleSheet("border:0px")
-        self.mode_label.setStyleSheet("font-size:20px")
-        self.bottomLayout_control.addWidget(self.mode_label)
-
-        self.mode_comba = QtWidgets.QComboBox(self)
-        self.mode_comba.addItems(["Object Detection", "Object Segmentation"])
-        self.mode_comba.setStyleSheet("font-size:15px")
+        # Mode selection
+        self.mode_label = self.create_label("Select Mode:", 20)
+        self.mode_comba = self.create_combobox(["Object Detection", "Object Segmentation"], 15)
         self.mode_comba.currentIndexChanged.connect(self.on_mode_changed)
+        self.bottomLayout_control.addWidget(self.mode_label)
         self.bottomLayout_control.addWidget(self.mode_comba)
 
         self.bottomLayout_control.addWidget(self.white_add2)
 
-        mainLayout.addWidget(groupBox_left)
-
-        # Camera selection dropdown
-        self.camera_label = QtWidgets.QLabel(self)
-        self.camera_label.setText("Select Camera:")
-        self.camera_label.setStyleSheet("font-size:20px")
-        self.bottomLayout_control.addWidget(self.camera_label)
-
-        self.camera_comba = QtWidgets.QComboBox(self)
-        self.camera_comba.setStyleSheet("font-size:15px")
+        # Camera selection
+        self.camera_label = self.create_label("Select Camera:", 20)
+        self.camera_comba = self.create_combobox([], 15)
         self.camera_comba.currentIndexChanged.connect(self.change_camera)
+        self.bottomLayout_control.addWidget(self.camera_label)
         self.bottomLayout_control.addWidget(self.camera_comba)
 
-        self.bottomLayout_control.addWidget(self.white_add2)
+        self.bottomLayout_control.addWidget(self.white_add3)
+
+        mainLayout.addWidget(groupBox_left)
 
         # Control buttons
         self.btnLayout = QtWidgets.QHBoxLayout()
+        self.setup_buttons()
+
+        self.bottomLayout.setSpacing(40)
+        mainLayout.addWidget(groupBox_right)
+
+
+    def create_label(self, text, font_size):
+        label = QtWidgets.QLabel(self)
+        label.setText(text)
+        label.setStyleSheet(f"font-size:{font_size}px")
+        return label
+
+    def create_combobox(self, items, font_size):
+        combo_box = QtWidgets.QComboBox(self)
+        combo_box.addItems(items)
+        combo_box.setStyleSheet(f"font-size:{font_size}px")
+        return combo_box
+
+    def setup_buttons(self):
 
         button_style = '''
         QPushButton {
@@ -154,7 +162,7 @@ class Main_Window(QtWidgets.QMainWindow):
             display: inline-flex;
             fill: currentcolor;
             font-family: "Google Sans",Roboto,Arial,sans-serif;
-            font-size: 14px;
+            font-size: 20px;
             font-weight: 500;
             height: 48px;
             justify-content: center;
@@ -210,22 +218,10 @@ class Main_Window(QtWidgets.QMainWindow):
             }
         '''
 
-        self.cam_btn = QtWidgets.QPushButton("📹Camera")
-        self.cam_btn.clicked.connect(self.startCamera)
-        self.cam_btn.clicked.connect(self.ChangeFlag_camera)
-        self.cam_btn.setStyleSheet(button_style)
-
-        self.video_btn = QtWidgets.QPushButton("🎞️Video File")
-        self.video_btn.clicked.connect(self.getVideo)
-        self.video_btn.setStyleSheet(button_style)
-
-        self.img_btn = QtWidgets.QPushButton("📷Image")
-        self.img_btn.clicked.connect(self.get_image)
-        self.img_btn.setStyleSheet(button_style)
-
-        self.stop_btn = QtWidgets.QPushButton("🛑Stop")
-        self.stop_btn.clicked.connect(self.stop)
-        self.stop_btn.setStyleSheet(button_style)
+        self.cam_btn = self.create_button("Camera📹", self.startCamera, button_style)
+        self.video_btn = self.create_button("Video📽️", self.getVideo, button_style)
+        self.img_btn = self.create_button("Image🏞️", self.get_image, button_style)
+        self.stop_btn = self.create_button("Stop⏸️", self.stop, button_style)
 
         self.btnLayout.addWidget(self.cam_btn)
         self.btnLayout.addWidget(self.video_btn)
@@ -234,7 +230,11 @@ class Main_Window(QtWidgets.QMainWindow):
 
         self.bottomLayout.setSpacing(40)
 
-        mainLayout.addWidget(groupBox_right)
+    def create_button(self, text, func, button_style):
+        button = QtWidgets.QPushButton(text)
+        button.clicked.connect(func)
+        button.setStyleSheet(button_style)
+        return button
 
     def detect_and_update_cameras(self):
         # Check available cameras
@@ -358,8 +358,8 @@ class Main_Window(QtWidgets.QMainWindow):
             time.sleep(0.02)
 
     def on_model_changed(self, index):
-        detection_paths = ["model\yolov10n.pt", "model\yolov10s.pt"]
-        segmentation_paths = ["model\yolov8n-seg.pt", "model\yolov8s-seg.pt"]
+        detection_paths = ["model\\yolov10n.pt", "model\\yolov10s.pt"]
+        segmentation_paths = ["model\\yolov8n-seg.pt", "model\\yolov8s-seg.pt"]
         if self.flag_mode_det:
             model_path = detection_paths[index]
             self.model = YOLOv10(model_path)
@@ -370,8 +370,8 @@ class Main_Window(QtWidgets.QMainWindow):
             self.show_image()
 
     def on_mode_changed(self, index):
-        detection_paths = ["model\yolov10n.pt", "model\yolov10s.pt"]
-        segmentation_paths = ["model\yolov8n-seg.pt", "model\yolov8s-seg.pt"]
+        detection_paths = ["model\\yolov10n.pt", "model\\yolov10s.pt"]
+        segmentation_paths = ["model\\yolov8n-seg.pt", "model\\yolov8s-seg.pt"]
         if index == 0:
             self.flag_mode_det = True
             mode_path = detection_paths[self.model_scale]
@@ -417,7 +417,6 @@ class Main_Window(QtWidgets.QMainWindow):
 
     def change_camera(self):
         # Stop the current camera and start the new one when the user selects a new camera
-
         if self.flag_camera:  # If a camera is already running, stop it
             self.stop()
 
